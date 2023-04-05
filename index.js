@@ -38,7 +38,7 @@ app.get('/api/hello', function(req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-app.post('/api/shorturl/new', async function (req, res) {
+app.post('/api/shorturl', async function (req, res) {
   const url = req.body.url_input;
   const urlCode = shortid.generate();
 
