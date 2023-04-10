@@ -5,8 +5,9 @@ const app = express();
 const bodyParser = require('body-parser');
 
 const mongoose = require('mongoose');
-const shortid = require('shortid');
+const shortId = require('shortid');
 const validUrl = require('valid-url');
+
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const connection = mongoose.connection;
@@ -30,6 +31,8 @@ app.use(cors());
 
 app.use(bodyParser.urlencoded({extended: false}));
 
+app.use(bodyParser.json());
+
 app.use('/public', express.static(`${process.cwd()}/public`));
 
 app.get('/', function(req, res) {
@@ -41,21 +44,26 @@ app.get('/api/hello', function(req, res) {
   res.json({ greeting: 'hello API' });
 });
 
-app.post('/api/shorturl', async function (req, res) {
+app.post('/api/shorturl/new', async function (req, res) {
   const url = req.body.url_input;
-  const urlCode = shortid.generate();
+  
+  const urlCode = shortId.generate();
 
   if (!validUrl.isWebUri) {
     res.status(401).json({error: 'invalid url'});
   } 
   else {
     try {
-      let findOne = await URL.findOne({original_url: url});
+      let findOne = await URL.findOne({
+        original_url: url, 
+        short_url: urlCode
+      });
       if (findOne) {
         res.json({original_url: findOne.original_url, short_url: findOne.short_url});
       }
       else {
         findOne = new URL({original_url: url, short_url: urlCode});
+        
         await findOne.save();
         res.json({original_url: findOne.original_url, short_url: findOne.short_url});
       }
