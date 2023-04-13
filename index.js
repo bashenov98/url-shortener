@@ -50,24 +50,26 @@ app.post('/api/shorturl', async function (req, res) {
   const urlCode = shortId.generate();
 
   if (!validUrl.isUri(url)) {
-    res.status(401).json({error: 'invalid url'});
+    return res.status(400).json({error: 'invalid url'});
   } 
-  else {
-    try {
-      let findOne = await URL.findOne({
-        original_url: url, 
-        short_url: urlCode
-      });
-      if (findOne) {
-        res.json({original_url: findOne.original_url, short_url: findOne.short_url});
-      }
-      else {
-        findOne = new URL({original_url: url, short_url: urlCode});
-        
-        await findOne.save();
-        res.json({original_url: findOne.original_url, short_url: findOne.short_url});
-      }
+
+  try {
+    let findOne = await URL.findOne({
+      original_url: url, 
+      short_url: urlCode
+    });
+
+    if (findOne) {
+      return res.json({original_url: findOne.original_url, short_url: findOne.short_url});
     }
+    
+    findOne = new URL({original_url: url, short_url: urlCode});
+        
+    await findOne.save();
+
+    return res.json({original_url: findOne.original_url, short_url: findOne.short_url});
+  }
+    
     catch (err) {
       console.log(err);
       res.status(500).json('Internal error');
