@@ -75,7 +75,7 @@ app.post('/api/shorturl', async function (req, res) {
       res.status(500).json('Internal error');
     }
   }
-});
+);
 
 app.get('/api/shorturl/:short_url?', async function (req, res) {
   try {
