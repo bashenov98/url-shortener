@@ -72,7 +72,7 @@ app.post('/api/shorturl', async function (req, res) {
     
     catch (err) {
       console.log(err);
-      res.status(500).json('Internal error');
+      return res.status(500).json('Internal error');
     }
   }
 );
@@ -89,7 +89,7 @@ app.get('/api/shorturl/:short_url?', async function (req, res) {
   }
   catch (err) {
     console.log(err);
-    res.status(500).json('Internal error');
+    return res.status(500).json('Internal error');
   }
 });
 
