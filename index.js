@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const dns = require('dns');
 const app = express();
 const bodyParser = require('body-parser');
 
@@ -48,41 +49,39 @@ app.post('/api/shorturl', async function (req, res) {
   const url = req.body.url_input;
   
   const urlCode = shortId.generate();
-  console.log('MONGO_URI: ' + process.env.MONGO_URI);
-  console.log('req.body.url_input: ' + req.body.url_input);
-  console.log('urlCode: ' + urlCode);
-  console.log('validUrl.isUri(url) ' + validUrl.isUri(url));
-  
 
   if (!validUrl.isUri(url)) {
     return res.status(400).json({error: 'invalid url'});
   } 
 
   try {
-    let findOne = await URL.findOne({
-      original_url: url, 
-      short_url: urlCode
-    });
-
-    console.log("findOne: " + findOne);
+    let findOne = await URL.findOne({ original_url: url });
 
     if (findOne) {
       return res.json({original_url: findOne.original_url, short_url: findOne.short_url});
     }
-    
-    findOne = new URL({original_url: url, short_url: urlCode});
-        
-    await findOne.save();
 
-    return res.json({original_url: findOne.original_url, short_url: findOne.short_url});
+    // validate the URL using DNS lookup
+    dns.lookup(url, async function (err, address, family) {
+      if (err) {
+        return res.status(400).json({ error: 'invalid url' });
+      }
+
+      const newURL = new URL({
+        original_url: url,
+        short_url: urlCode
+      });
+
+      await newURL.save();
+
+      return res.json({ original_url: newURL.original_url, short_url: newURL.short_url });
+    });
   }
-    
-    catch (err) {
-      console.log(err);
-      return res.status(500).json('Internal error');
-    }
+  catch (err) {
+    console.log(err);
+    return res.status(500).json('Internal error');
   }
-);
+});
 
 app.get('/api/shorturl/:short_url?', async function (req, res) {
   console.log(process.env.MONGO_URI);
