@@ -40,7 +40,7 @@ app.get('/', function(req, res) {
 });
 
 // Your first API endpoint
-app.get('/api/hello', function(req, res) {
+app.get('/api/hello', async function(req, res) {
   res.json({ greeting: 'hello API' });
 });
 
@@ -48,6 +48,11 @@ app.post('/api/shorturl', async function (req, res) {
   const url = req.body.url_input;
   
   const urlCode = shortId.generate();
+  console.log('MONGO_URI: ' + process.env.MONGO_URI);
+  console.log('req.body.url_input: ' + req.body.url_input);
+  console.log('urlCode: ' + urlCode);
+  console.log('validUrl.isUri(url) ' + validUrl.isUri(url));
+  
 
   if (!validUrl.isUri(url)) {
     return res.status(400).json({error: 'invalid url'});
@@ -58,6 +63,8 @@ app.post('/api/shorturl', async function (req, res) {
       original_url: url, 
       short_url: urlCode
     });
+
+    console.log("findOne: " + findOne);
 
     if (findOne) {
       return res.json({original_url: findOne.original_url, short_url: findOne.short_url});
@@ -78,6 +85,9 @@ app.post('/api/shorturl', async function (req, res) {
 );
 
 app.get('/api/shorturl/:short_url?', async function (req, res) {
+  console.log(process.env.MONGO_URI);
+  console.log(req.params.short_url);
+
   try {
     const urlParams = await URL.findOne({short_url: req.params.short_url});
     if (urlParams) {
